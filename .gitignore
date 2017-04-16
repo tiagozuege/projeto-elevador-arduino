@@ -2,3 +2,5 @@
 
 *.exe
 Browse.VC.db
+Win32Project2/Debug/*
+./Debug/*
