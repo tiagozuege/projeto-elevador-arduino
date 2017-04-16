@@ -273,11 +273,60 @@ HWND selecionaImgElevador(int passageiros, HWND hDlg) {
 	return elevador;
 }
 
+char leDadosArduino(HWND hDlg) {
+
+	char retorno = '0';
+	HANDLE serialArduino;
+	char dadosArduino[10];
+	char dados[10];
+	LPWSTR bytes;
+	DWORD nBytesLidos;
+	DWORD nBytesEscritos;
+
+	serialArduino = CreateFile(L"COM9", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+	OutputDebugStringW(L"Abrindo porta serial...");
+
+	if (serialArduino == INVALID_HANDLE_VALUE) {
+		MessageBox(hDlg,
+			L"Erro ao abrir serial",
+			L"Erro",
+			MB_OK);
+
+	}
+	else {
+		OutputDebugStringW(L"Porta aberta com sucesso!");
+
+
+		ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);		//lendo 1 byte por vez
+																				//ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);
+
+		OutputDebugStringW(L"Lendo porta serial...");
+
+		if (dadosArduino[0] == '2') {		//botao 'para cima' pressionado
+			OutputDebugStringW(L"Leu A2");
+			retorno = '2';
+		}
+		if (dadosArduino[0] == '1') {		//botao 'para baixo' pressionado
+			OutputDebugStringW(L"Leu A1");
+			retorno = '1';
+		}
+		if (dadosArduino[0] == '8') {		//botao de emergencia pressionado
+			OutputDebugStringW(L"Leu A8");
+			retorno = '8';
+		}
+
+		CloseHandle(serialArduino);
+	}
+
+	return retorno;
+}
+
 
 //Manipulador de eventos da DialogPrincipal
 INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	HANDLE serialArduino;
+	//HANDLE serialArduino;
 	static int posicaoY = 290; //200
 	static int posicaoX = 490; //500
 	static int pesoTotal = 0;	//Quantidade total de peso
@@ -287,6 +336,12 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 	HWND imgelevador;
 	HWND elevador;
 	HWND elevador1, elevador2, elevador3, elevador4, elevador5, elevador6;
+	
+
+	/*if (leDadosArduino(hDlg) == '2') {
+		OutputDebugStringW(L"ELEVADOR VAI COMECAR A SUBIR");
+	}*/
+
 
 	//UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -328,59 +383,62 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 			{
 
 				case IDC_SERIAL:
-
-					//***TODO
-
-					// Open serial port
-					//HANDLE serialArduino;
-					char dadosArduino[10];
-					char dados[10];
-					LPWSTR bytes;
-					DWORD nBytesLidos;
-					DWORD nBytesEscritos;
-
-					serialArduino = CreateFile(L"COM9", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-					//FILE_ATTRIBUTE_NORMAL
-					//FILE_FLAG_OVERLAPPED
-
-					OutputDebugStringW(L"Abrindo porta serial...");
-
-					if (serialArduino == INVALID_HANDLE_VALUE) {
-						MessageBox(hDlg,
-							L"Erro ao abrir serial",
-							L"Erro",
-							MB_OK);
-
+					if (leDadosArduino(hDlg) == '2') {
+						OutputDebugStringW(L"ELEVADOR VAI COMECAR A SUBIR");
 					}
-					else {
-
-						//MessageBox(hDlg, L"Aberto com sucesso!", L"Serial", MB_OK);
-						OutputDebugStringW(L"Porta aberta com sucesso!");
-
-						while (true) {
-
-							ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);		//lendo 1 byte por vez
-							//ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);
-
-							OutputDebugStringW(L"Lendo porta serial...");
-
-							if (dadosArduino[0] == '2' || dadosArduino[0] == '1') {
-								OutputDebugStringA(dadosArduino);
-								SetDlgItemTextA(hDlg, IDC_EDITNUMPASS, LPCSTR(dadosArduino));
-								
-								break;
-							}
-							if (dadosArduino[0] == '8') {
-								OutputDebugStringA(dadosArduino);
-								OutputDebugStringW(L"EMERGENCIA EMERGENCIAAAAA");
-								break;
-							}
-						}
-
-						CloseHandle(serialArduino);
-					}
-
 					break;
+				//	//***TODO
+
+				//	// Open serial port
+				//	//HANDLE serialArduino;
+				//	char dadosArduino[10];
+				//	char dados[10];
+				//	LPWSTR bytes;
+				//	DWORD nBytesLidos;
+				//	DWORD nBytesEscritos;
+
+				//	serialArduino = CreateFile(L"COM9", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+				//	//FILE_ATTRIBUTE_NORMAL
+				//	//FILE_FLAG_OVERLAPPED
+
+				//	OutputDebugStringW(L"Abrindo porta serial...");
+
+				//	if (serialArduino == INVALID_HANDLE_VALUE) {
+				//		MessageBox(hDlg,
+				//			L"Erro ao abrir serial",
+				//			L"Erro",
+				//			MB_OK);
+
+				//	}
+				//	else {
+
+				//		//MessageBox(hDlg, L"Aberto com sucesso!", L"Serial", MB_OK);
+				//		OutputDebugStringW(L"Porta aberta com sucesso!");
+
+				//		while (true) {
+
+				//			ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);		//lendo 1 byte por vez
+				//			//ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);
+
+				//			OutputDebugStringW(L"Lendo porta serial...");
+
+				//			if (dadosArduino[0] == '2' || dadosArduino[0] == '1') {
+				//				OutputDebugStringA(dadosArduino);
+				//				SetDlgItemTextA(hDlg, IDC_EDITNUMPASS, LPCSTR(dadosArduino));
+				//				
+				//				break;
+				//			}
+				//			if (dadosArduino[0] == '8') {
+				//				OutputDebugStringA(dadosArduino);
+				//				OutputDebugStringW(L"EMERGENCIA EMERGENCIAAAAA");
+				//				break;
+				//			}
+				//		}
+
+				//		CloseHandle(serialArduino);
+				//	}
+
+				//	break;
 
 				//Pressionou o botao Sobe:
 				case IDC_SOBE:
