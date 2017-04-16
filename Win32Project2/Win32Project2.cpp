@@ -286,7 +286,6 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 	int peso = 0;
 	HWND imgelevador;
 	HWND elevador;
-	//HWND elevador_aux;
 	HWND elevador1, elevador2, elevador3, elevador4, elevador5, elevador6;
 
 	//UNREFERENCED_PARAMETER(lParam);
@@ -394,6 +393,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							MB_OK);
 					}
 					else {
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
 						elevador = selecionaImgElevador(passTotal, hDlg);
 
 						for (int i = 0; i < 15; i++) {
@@ -402,8 +402,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							Sleep(250);
 						}
 						andar++;
-						//SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
-						//posicaoY -= 10;
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
 					}
 					
 					break;
@@ -419,6 +418,8 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							MB_OK);
 					}
 					else {
+
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
 						elevador = selecionaImgElevador(passTotal, hDlg);
 
 						for (int i = 0; i < 15; i++) {
@@ -428,23 +429,15 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							Sleep(250);
 						}
 						andar --;
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
 					}
-					//SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
-					//posicaoY += 10;
 					break;
 
 				//Insere passageiros no elevador
 				case IDC_INSEREPASS:
 
-					//***TODO
-
 					elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR);
 					ShowWindow(elevador, SW_HIDE);
-					//elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
-					//ShowWindow(elevador_aux, SW_SHOW);
-					//ShowWindow(elevador, SW_HIDE);
-					//elevador1 = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
-					//ShowWindow(elevador1, SW_SHOW);
 
 					pesoTotal += GetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE);
 					
@@ -452,12 +445,11 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 						pesoTotal -= GetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE);
 					}
 					else {
-						//***BUG
 						passTotal++;
-						//elevador_aux = selecionaImgElevador(passTotal, hDlg);
 						elevador = selecionaImgElevador(passTotal, hDlg);
 						ShowWindow(elevador_aux, SW_HIDE);
 						ShowWindow(elevador, SW_SHOW);
+						SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
 					}
 
 					SetDlgItemInt(hDlg, IDC_EDITPESOT, pesoTotal, FALSE);
