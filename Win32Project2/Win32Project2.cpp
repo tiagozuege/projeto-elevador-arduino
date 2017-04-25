@@ -284,7 +284,7 @@ char leDadosArduino(HWND hDlg) {
 	DWORD nBytesLidos;
 	DWORD nBytesEscritos;
 
-	serialArduino = CreateFile(L"COM9", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	serialArduino = CreateFile(L"COM8", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
 	OutputDebugStringW(L"Abrindo porta serial...");
 
