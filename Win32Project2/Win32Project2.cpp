@@ -8,13 +8,20 @@
 
 #define MAX_LOADSTRING 100
 
+
+
 // Variáveis Globais:
 HWND janelaPrincipal;
 HINSTANCE hInst;                                // instância atual
 WCHAR szTitle[MAX_LOADSTRING];                  // O texto da barra de título
 WCHAR szWindowClass[MAX_LOADSTRING];            // o nome da classe da janela principal
-UINT_PTR TIMER_ELEVADOR;
 HWND elevador_aux;
+UINT_PTR TIMER_ELEVADOR;
+HANDLE serialArduino;
+COMMTIMEOUTS timeouts;
+
+void abrePortaCom(HWND hDlg);
+int leDadosArduino();
 
 
 // Declarações de encaminhamento de funções incluídas nesse módulo de código:
@@ -235,6 +242,40 @@ BOOL excedeuPesoMax(int pesoTotal, HWND hDlg) {
 	return excedeu;
 }
 
+HWND selecionaImgRemPassageiros(int passageiros, HWND hDlg) {
+
+	HWND elevador;
+
+	switch (passageiros) {
+
+	case 1:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
+		break;
+	case 2:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR2);
+		break;
+	case 3:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR2);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR3);
+		break;
+	case 4:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR3);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR4);
+		break;
+	case 5:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR4);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR5);
+		break;
+	case 6:
+		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR5);
+		elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR6);
+		break;
+
+		return elevador;
+	}
+}
 //Seleciona a imagem do elevador conforme o num. de passageiros
 HWND selecionaImgElevador(int passageiros, HWND hDlg) {
 	
@@ -273,11 +314,101 @@ HWND selecionaImgElevador(int passageiros, HWND hDlg) {
 	return elevador;
 }
 
+//Funcao que cria e abre a porta
+void abrePortaCom(HWND hDlg) {
+
+	serialArduino = CreateFile(L"COM4", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+	OutputDebugStringW(L"Abrindo porta serial...");
+
+	if (serialArduino == INVALID_HANDLE_VALUE) {
+
+		MessageBox(hDlg,
+			L"Erro ao abrir serial",
+			L"Erro",
+			MB_OK);
+
+	}
+	else {
+		OutputDebugStringW(L"Porta aberta com sucesso!");
+	}
+
+	COMMTIMEOUTS comTimeOut;
+	comTimeOut.ReadIntervalTimeout = 3;
+	comTimeOut.ReadTotalTimeoutMultiplier = 3;
+	comTimeOut.ReadTotalTimeoutConstant = 2;
+	comTimeOut.WriteTotalTimeoutMultiplier = 3;
+	comTimeOut.WriteTotalTimeoutConstant = 2;
+	SetCommTimeouts(serialArduino, &comTimeOut);
+
+}
+//Funcao para ler os dados do Arduino
+//Retorna um char de acordo ao comando enviado pela porta USB
+int leDadosArduino() {
+
+	//HANDLE serialArduino;
+	int retorno = 100;
+	char dadosArduino[10];
+	LPWSTR bytes;
+	DWORD nBytesLidos;
+	DWORD nBytesEscritos;
+
+	/*serialArduino = CreateFile(L"COM3", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+	OutputDebugStringW(L"Abrindo porta serial...");
+
+	if (serialArduino == INVALID_HANDLE_VALUE) {
+
+		MessageBox(hDlg,
+			L"Erro ao abrir serial",
+			L"Erro",
+			MB_OK);
+
+	}
+	else {
+		OutputDebugStringW(L"Porta aberta com sucesso!");
+	}*/
+
+
+		//while (retorno == 0) {
+
+			ReadFile(serialArduino, dadosArduino, 2, &nBytesLidos, NULL);		//lendo 1 byte por vez
+																				//ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL)
+			//OutputDebugStringW(L"Lendo porta serial...");
+
+			if (dadosArduino[1] == '1') {		//botao 'para cima' pressionado
+				OutputDebugStringW(L"Leu A1");
+				retorno = 1;
+			}
+			if (dadosArduino[1] == '2') {		//botao 'para baixo' pressionado
+				OutputDebugStringW(L"Leu A2");
+				retorno = 2;
+			}
+			if (dadosArduino[1] == '8') {		//botao de emergencia pressionado
+				OutputDebugStringW(L"Leu A8");
+				retorno = 8;
+			}
+			if (dadosArduino[1] == '0') {		//botao de emergencia pressionado
+				OutputDebugStringW(L"Leu A0");
+				retorno = 0;
+			}
+
+
+		//}
+
+		//CloseHandle(serialArduino);
+
+  
+	
+
+	return retorno;
+}
+
 
 //Manipulador de eventos da DialogPrincipal
 INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	HANDLE serialArduino;
+	//HANDLE serialArduino;
 	static int posicaoY = 290; //200
 	static int posicaoX = 490; //500
 	static int pesoTotal = 0;	//Quantidade total de peso
@@ -286,8 +417,9 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 	int peso = 0;
 	HWND imgelevador;
 	HWND elevador;
-	//HWND elevador_aux;
 	HWND elevador1, elevador2, elevador3, elevador4, elevador5, elevador6;
+	int comando = 100;
+
 
 	//UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -295,6 +427,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 	case WM_INITDIALOG:
 		//elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR);
+		SetTimer(hDlg, TIMER_ELEVADOR, 100, NULL);
 		elevador1 = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
 		elevador2 = GetDlgItem(hDlg, IDC_IMGELEVADOR2);
 		elevador3 = GetDlgItem(hDlg, IDC_IMGELEVADOR3);
@@ -309,16 +442,46 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 		ShowWindow(elevador6, SW_HIDE);
 		imgelevador = GetDlgItem(hDlg, IDB_ELEVADOR);
 		SetTimer(hDlg, TIMER_ELEVADOR, 100, NULL);
+		abrePortaCom(hDlg);
 		break;
 
-	//case WM_TIMER:
-	//	if (wParam == TIMER_ELEVADOR)
-	//	{
-	//		elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR);
-	//		SetWindowPos(elevador, HWND_TOP, posicaoX, 50 - posicaoY, 0, 0, SWP_NOSIZE);
-	//		posicaoX++;
-	//	}
-	//	break;
+	case WM_TIMER:
+		if (wParam == TIMER_ELEVADOR) {
+
+			comando = leDadosArduino();
+
+			if (comando == 1) {
+				OutputDebugStringW(L"COMANDO PARA SUBIR");
+
+				if (andar == 3) {
+					MessageBox(
+						hDlg,
+						L"Andar máximo atingido!",
+						L"Erro",
+						MB_OK);
+				}
+				else {
+					EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
+					elevador = selecionaImgElevador(passTotal, hDlg);
+
+					for (int i = 0; i < 2; i++) {
+						SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
+						posicaoY -= 5;
+						Sleep(250);
+					}
+					if (posicaoY < 174 && posicaoY >= 100 ) {
+						andar = 2;
+					}
+					else if (posicaoY < 99 && posicaoY >= 10) {
+						andar = 3;
+					}
+					//andar++;
+					EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
+				}
+
+			}
+		}
+		break;
 		
 
 	case WM_COMMAND:
@@ -330,56 +493,67 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 				case IDC_SERIAL:
 
-					//***TODO
+					while (true) {
+						
+						//sobe
+						comando = leDadosArduino();
+						if (comando == '2') {
+							OutputDebugStringW(L"COMANDO PARA SUBIR");
 
-					// Open serial port
-					//HANDLE serialArduino;
-					char dadosArduino[10];
-					char dados[10];
-					LPWSTR bytes;
-					DWORD nBytesLidos;
-					DWORD nBytesEscritos;
-
-					serialArduino = CreateFile(L"COM9", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-					//FILE_ATTRIBUTE_NORMAL
-					//FILE_FLAG_OVERLAPPED
-
-					OutputDebugStringW(L"Abrindo porta serial...");
-
-					if (serialArduino == INVALID_HANDLE_VALUE) {
-						MessageBox(hDlg,
-							L"Erro ao abrir serial",
-							L"Erro",
-							MB_OK);
-
-					}
-					else {
-
-						//MessageBox(hDlg, L"Aberto com sucesso!", L"Serial", MB_OK);
-						OutputDebugStringW(L"Porta aberta com sucesso!");
-
-						while (true) {
-
-							ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);		//lendo 1 byte por vez
-							//ReadFile(serialArduino, dadosArduino, 1, &nBytesLidos, NULL);
-
-							OutputDebugStringW(L"Lendo porta serial...");
-
-							if (dadosArduino[0] == '2' || dadosArduino[0] == '1') {
-								OutputDebugStringA(dadosArduino);
-								SetDlgItemTextA(hDlg, IDC_EDITNUMPASS, LPCSTR(dadosArduino));
-								
-								break;
+							if (andar == 3) {
+								MessageBox(
+									hDlg,
+									L"Andar máximo atingido!",
+									L"Erro",
+									MB_OK);
 							}
-							if (dadosArduino[0] == '8') {
-								OutputDebugStringA(dadosArduino);
-								OutputDebugStringW(L"EMERGENCIA EMERGENCIAAAAA");
-								break;
+							else {
+								EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
+								elevador = selecionaImgElevador(passTotal, hDlg);
+
+								for (int i = 0; i < 15; i++) {
+									SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
+									posicaoY -= 10;
+									Sleep(250);
+								}
+								andar++;
+								EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
 							}
+
+							break;
 						}
 
-						CloseHandle(serialArduino);
+						//desce
+						if (comando == '1') {
+							OutputDebugStringW(L"COMANDO PARA DESCER");
+
+							if (andar == 1) {
+								MessageBox(
+									hDlg,
+									L"Andar mínimo atingido!",
+									L"Erro",
+									MB_OK);
+							}
+							else {
+
+								EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
+								elevador = selecionaImgElevador(passTotal, hDlg);
+
+								for (int i = 0; i < 15; i++) {
+
+									posicaoY += 10;
+									SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
+									Sleep(250);
+								}
+								andar--;
+								EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
+							}
+
+							break;
+						}
+
 					}
+
 
 					break;
 
@@ -394,6 +568,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							MB_OK);
 					}
 					else {
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
 						elevador = selecionaImgElevador(passTotal, hDlg);
 
 						for (int i = 0; i < 15; i++) {
@@ -402,8 +577,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							Sleep(250);
 						}
 						andar++;
-						//SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
-						//posicaoY -= 10;
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
 					}
 					
 					break;
@@ -419,6 +593,8 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							MB_OK);
 					}
 					else {
+
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), FALSE);	//desabilita botao para inserir passageiros
 						elevador = selecionaImgElevador(passTotal, hDlg);
 
 						for (int i = 0; i < 15; i++) {
@@ -428,23 +604,26 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 							Sleep(250);
 						}
 						andar --;
+						EnableWindow(GetDlgItem(hDlg, IDC_INSEREPASS), TRUE);	//habilita botao para inserir passageiros
 					}
-					//SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
-					//posicaoY += 10;
 					break;
 
 				//Insere passageiros no elevador
 				case IDC_INSEREPASS:
 
-					//***TODO
+					if ( (GetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE)) == NULL) {
+						
+						MessageBox(
+							hDlg,
+							L"Informe o peso do passageiro!",
+							L"Erro",
+							MB_OK);
+
+						break;
+					}
 
 					elevador = GetDlgItem(hDlg, IDC_IMGELEVADOR);
 					ShowWindow(elevador, SW_HIDE);
-					//elevador_aux = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
-					//ShowWindow(elevador_aux, SW_SHOW);
-					//ShowWindow(elevador, SW_HIDE);
-					//elevador1 = GetDlgItem(hDlg, IDC_IMGELEVADOR1);
-					//ShowWindow(elevador1, SW_SHOW);
 
 					pesoTotal += GetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE);
 					
@@ -452,16 +631,35 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 						pesoTotal -= GetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE);
 					}
 					else {
-						//***BUG
 						passTotal++;
-						//elevador_aux = selecionaImgElevador(passTotal, hDlg);
+						//SetDlgItemInt(hDlg, IDC_EDITPESO, NULL, FALSE);
 						elevador = selecionaImgElevador(passTotal, hDlg);
 						ShowWindow(elevador_aux, SW_HIDE);
 						ShowWindow(elevador, SW_SHOW);
+						SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
 					}
 
 					SetDlgItemInt(hDlg, IDC_EDITPESOT, pesoTotal, FALSE);
 					SetDlgItemInt(hDlg, IDC_EDITNUMPASS, passTotal, FALSE);
+					break;
+
+				case IDC_REMOVEPASS:
+					if (passTotal == 0) {
+
+						MessageBox(
+							hDlg,
+							L"Não há passageiros para remover!",
+							L"Erro",
+							MB_OK);
+					}
+					else {
+						elevador = selecionaImgRemPassageiros(passTotal, hDlg);
+						ShowWindow(elevador, SW_SHOW);
+						ShowWindow(elevador_aux, SW_HIDE);
+						SetWindowPos(elevador, HWND_TOP, posicaoX, posicaoY, 0, 0, SWP_NOSIZE);
+						passTotal--;
+
+					}
 					break;
 
 				case IDM_EXIT:
@@ -470,6 +668,7 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 					break;
 
 				case IDSAIR:
+					CloseHandle(serialArduino);
 					EndDialog(hDlg, 0);
 					DestroyWindow(janelaPrincipal);
 					break;
@@ -477,6 +676,13 @@ INT_PTR CALLBACK DialogPrincipal(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 		}
 
 		break;
+	
 	}
+
+	//***BUG : causa problemas ao carregar a Dialog!
+	/*if (leDadosArduino(hDlg) == '2') {
+		OutputDebugStringW(L"ELEVADOR VAI COMECAR A SUBIR");
+	}*/
+
 	return 0;
 }
