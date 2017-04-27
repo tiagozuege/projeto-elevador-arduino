@@ -1,9 +1,9 @@
 ﻿  Win32Project2.cpp
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(135): warning C4101: 'hdc': variável local não referenciada
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(134): warning C4101: 'ps': variável local não referenciada
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(133): warning C4101: 'wmId': variável local não referenciada
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(283): warning C4101: 'bytes': variável local não referenciada
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(285): warning C4101: 'nBytesEscritos': variável local não referenciada
-c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(282): warning C4101: 'dados': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(142): warning C4101: 'hdc': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(141): warning C4101: 'ps': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(140): warning C4101: 'wmId': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(352): warning C4101: 'bytes': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(354): warning C4101: 'nBytesEscritos': variável local não referenciada
+c:\users\tiago zuege\documents\visual studio 2017\projects\win32project2\win32project2\win32project2.cpp(278): warning C4715: 'selecionaImgRemPassageiros': nem todos os caminhos de controle retornam um valor
   Win32Project2.vcxproj -> C:\Users\Tiago Zuege\documents\visual studio 2017\Projects\Win32Project2\Debug\Win32Project2.exe
   Win32Project2.vcxproj -> C:\Users\Tiago Zuege\documents\visual studio 2017\Projects\Win32Project2\Debug\Win32Project2.pdb (Partial PDB)
